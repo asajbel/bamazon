@@ -25,33 +25,69 @@ module.exports =
       });
     };
 
-    this.READ = function(table) {
-      assert(table !== undefined, "Specicify Table");
-      var columns;
-      var where;
+    this.READ = function(from) {
+      assert(arguments.length  >= 2, "Specicify FROM and a callback function");
+      var select, where, groupBy, having, orderBy, limit;
       var listener;
+      var params = [];
       if (typeof arguments[1] == "object") {
-        options = arguments[1];
+        select = arguments[1].select;
+        where = arguments[1].where;
+        groupBy = arguments[1].groupBy;
+        having = arguments[1].having;
+        orderBy = arguments[1].orderBy;
+        limit = arguments[1].limit
         listener = arguments[2];
       } else {
-        options = {};
+        assert(typeof arguments[1] === "function", "requires callback function");
         listener = arguments[1];
       }
-      var query = "SELECT ? FROM ?";
+      if(select === undefined) select = "*";
+      var query = "SELECT " + select + " FROM " + from;
+      if (where !== undefined) {
+        query += " WHERE " + where;
+        params.push(where);
+      }
+      if (groupBy !== undefined) {
+        query += " GROUP BY " + groupBy;
+        params.push(groupBy);
+      }
+      if (having !== undefined) {
+        query += " HAVING " + having;
+        params.push(having);
+      }
+      if (orderBy !== undefined) {
+        query += " ORDER BY " + orderBy;
+        params.push(orderBy);
+      }
+      if (limit !== undefined) {
+        query += " LIMIT " + limit;
+        params.push(limit);
+      }
+      this.connection.query(query, function(err, res) {
+        if (err) throw err;
+        listener(res);
+      });
+      
     };
 
-    this.UPDATE = function(table, set, where) {
-      assert(table === undefined || set === undefined || where === undefined,
+    this.UPDATE = function(table, set, where, callback) {
+      assert(table !== undefined || set !== undefined || where !== undefined,
         "Specicify table set and where");
-      var query = "UPDATE ? SET ? WHERE ?";
-      this.connection.qeury(query, [table, set, where], function(err, res) {
+      var query = "UPDATE "+table+" SET ? WHERE ?";
+      this.connection.query(query, [set, where], function(err, res) {
         if (err) {
           throw err;
         };
+        callback();
       });
     };
 
     this.DELETE = function() {
 
+    };
+
+    this.end = function() {
+      this.connection.end();
     };
   }
