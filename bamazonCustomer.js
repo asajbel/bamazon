@@ -12,18 +12,23 @@ Bamazon.initialize(function(response) {
 });
 
 function storeFront() {
-	console.log("");
-  bamazon.printTable("products", function(res) {
-    chooseBid();
-  });
+  bamazon.printTable(
+    "products", { select: ["item_id", "product_name", "department_name", "price", "stock_quantity"] },
+    function(res) {
+      purchase();
+    });
 }
 
-function chooseBid() {
+function validateNumberQuit(val) {
+  return ((val % 1 === 0 && val >= 0) || val.toLowerCase() === "q") ? true : "Enter a whole number";
+}
+
+function purchase() {
   inquirer.prompt([{
       type: "input",
       name: "id",
       message: "What is the ID of the item you would like to purchase? [Quit with Q]",
-      validate: function(val) { return (/([0-9])+|q|Q/.test(val)) ? true : "Enter a number"; }
+      validate: validateNumberQuit
     },
     {
       type: "input",
@@ -32,7 +37,7 @@ function chooseBid() {
       when: function(answers) {
         return /[^q|Q]/.test(answers.id);
       },
-      validate: function(val) { return (/([0-9])+|q|Q/.test(val)) ? true : "Enter a number"; }
+      validate: validateNumberQuit
     }
   ]).then(function(answers) {
     var quit = (/[q|Q]/.test(answers.id)) || (/[q|Q]/.test(answers.quantity));
@@ -40,10 +45,10 @@ function chooseBid() {
       bamazon.end();
     } else {
       checkItem(answers.id, answers.quantity, function(update) {
-        if(update){
-        	storeFront();
-        }else {
-        	chooseBid();
+        if (update) {
+          storeFront();
+        } else {
+          purchase();
         }
       })
     }
@@ -53,20 +58,21 @@ function chooseBid() {
 
 function checkItem(id, quantity, callback) {
   bamazon.READ("products", {
-    where: "item_id = " + id,
-    having: "stock_quantity > " + quantity,
+    where: { item_id: id },
+    having: ["stock_quantity > " + quantity],
   }, function(res) {
     if (res.length < 1) {
       console.log("\nInsufficient quantity or does not exist.\n");
       callback(false);
     } else {
-    	var updatedStock = res[0].stock_quantity - parseInt(quantity);
-    	bamazon.UPDATE("products", {stock_quantity: updatedStock}, {item_id: res[0].item_id},
-    		function () {
-    			var amount = parseInt(quantity) * res[0].price;
-    			console.log("\nYou bought "+quantity+" "+res[0].product_name+" for $"+amount+".");
-    			callback(true);
-    		});
+      var amount = (quantity * res[0].price).toFixed(2);
+      var set = "stock_quantity = stock_quantity - " + quantity;
+      set += ", product_sales = product_sales + " + amount;
+      bamazon.UPDATE("products", set, { item_id: res[0].item_id },
+        function() {
+          console.log("\nYou bought " + quantity + " " + res[0].product_name + " for $" + amount + ".");
+          callback(true);
+        });
     }
   });
 }
