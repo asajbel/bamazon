@@ -63,18 +63,6 @@ function viewLow() {
     });
 }
 
-// function validateNumber(val) {
-//   return (!isNaN(parseFloat(val)) && isFinite(val)) ? true : "Enter a number";
-// }
-
-// function validateDollar(val) {
-// 	return(!isNaN(parseFloat(val)) && /^[0-9]*(\.[0-9][0-9])*$/.test(val)) ? true : "Enter a dollar price";
-// }
-
-// function validateWholeNumber(val) {
-// 	return (val % 1 === 0 && val >= 0) ? true : "Enter a whole number";
-// }
-
 function addInventory() {
   bamazon.READ("products", { select: ["product_name", "stock_quantity"] },
     function(res) {
@@ -113,36 +101,44 @@ function addInventory() {
 }
 
 function addProduct() {
-  var prompt = [{
-      name: "name",
-      message: "What is the name of the product you would like to add?",
-      type: "input"
-    },
-    {
-      name: "department",
-      message: "To what department does this product belong?",
-      type: "input"
-    },
-    {
-      name: "price",
-      message: "What is the product's price?",
-      type: "input",
-      validate: Bamazon.validateDollar
-    },
-    {
-      name: "stock",
-      message: "How much stock do we have of the product?",
-      type: "input",
-      validate: Bamazon.validateWholeNumber
-    }
-  ];
-  inquirer.prompt(prompt).then(function(answers) {
-    bamazon.CREATE("products", {
-      product_name: answers.name,
-      department_name: answers.department,
-      price: parseFloat(answers.price),
-      stock_quantity: answers.stock
+  bamazon.READ("departments", { select: "department_name" }, function(res) {
+  	var departmentNames = [];
+  	for (var i = 0; i < res.length; i++) {
+  		departmentNames.push(res[i].department_name);
+  	}
+    var prompt = [{
+        name: "name",
+        message: "What is the name of the product you would like to add?",
+        type: "input"
+      },
+      {
+        name: "department",
+        message: "To what department does this product belong?",
+        type: "list",
+        choices: departmentNames
+      },
+      {
+        name: "price",
+        message: "What is the product's price?",
+        type: "input",
+        validate: Bamazon.validateDollar
+      },
+      {
+        name: "stock",
+        message: "How much stock do we have of the product?",
+        type: "input",
+        validate: Bamazon.validateWholeNumber
+      }
+    ];
+    inquirer.prompt(prompt).then(function(answers) {
+      bamazon.CREATE("products", {
+        product_name: answers.name,
+        department_name: answers.department,
+        price: parseFloat(answers.price),
+        stock_quantity: answers.stock
+      });
+      storeFront();
     });
-    storeFront();
   });
+
 }
