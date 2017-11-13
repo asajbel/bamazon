@@ -9,17 +9,17 @@ Setup a local MySQL database with username root on port 3306, set the password t
 ##BamazonCustomer
 Customer can purchase items from the database in quantities that can't exceed the stock. Items are selected by their ID.
 
-![Customer](./customer.png "Customer")
+![Customer](./customer.PNG "Customer")
 
 ##BamazonManager
 Manager can look at what is for sale, check low inventory, add stock for items, or add new items for sale.
 
-![Manager](./manager.png "Manager")
+![Manager](./manager.PNG "Manager")
 
 ##BamazonSupervisor
 Supervisor can view product sales by department and create new departments. 
 
-![Supervisor](./supervisor.png "Supervisor")
+![Supervisor](./supervisor.PNG "Supervisor")
 
 
 ###Dependencies
