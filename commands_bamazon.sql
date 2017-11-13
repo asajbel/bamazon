@@ -28,7 +28,7 @@ Alter table products drop product_sales;
 SELECT departments.department_id, departments.department_name, departments.over_head_costs, 
 SUM(products.product_sales) AS product_sales,  (SUM(products.product_sales) - departments.over_head_costs) AS total_profit
 FROM departments 
-inner join products ON departments.department_name = products.department_name
+LEFT join products ON departments.department_name = products.department_name
 group by department_name
 order by department_id;
 

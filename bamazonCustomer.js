@@ -5,10 +5,7 @@ var bamazon;
 
 Bamazon.initialize(function(response) {
   bamazon = response;
-  bamazon.connection.connect(function(err) {
-    if (err) throw err;
-    storeFront();
-  });
+  storeFront();
 });
 
 function storeFront() {

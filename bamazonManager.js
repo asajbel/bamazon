@@ -5,10 +5,7 @@ var bamazon;
 
 Bamazon.initialize(function(response) {
   bamazon = response;
-  bamazon.connection.connect(function(err) {
-    if (err) throw err;
-    storeFront();
-  });
+  storeFront();
 });
 
 function storeFront() {
@@ -102,10 +99,10 @@ function addInventory() {
 
 function addProduct() {
   bamazon.READ("departments", { select: "department_name" }, function(res) {
-  	var departmentNames = [];
-  	for (var i = 0; i < res.length; i++) {
-  		departmentNames.push(res[i].department_name);
-  	}
+    var departmentNames = [];
+    for (var i = 0; i < res.length; i++) {
+      departmentNames.push(res[i].department_name);
+    }
     var prompt = [{
         name: "name",
         message: "What is the name of the product you would like to add?",
@@ -137,7 +134,7 @@ function addProduct() {
         price: parseFloat(answers.price),
         stock_quantity: answers.stock
       }, function(res) {
-      	storeFront();
+        storeFront();
       });
     });
   });

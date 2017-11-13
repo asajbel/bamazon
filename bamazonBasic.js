@@ -37,13 +37,13 @@ var Bamazon = function(database, password) {
   //callback is a function called after the mySQL command responds
   //returns the response from the mySQL server.
   this.printSelectQueryTable = function(query, callback) {
-  	this.READ(query, {query: true}, function(data){
-  		if (data.length > 0) {
-  			console.log("");
-  			console.table(data);
-  		}
-  		callback(data);
-  	});
+    this.READ(query, { query: true }, function(data) {
+      if (data.length > 0) {
+        console.log("");
+        console.table(data);
+      }
+      callback(data);
+    });
   }
 
 
@@ -52,20 +52,28 @@ var Bamazon = function(database, password) {
 Bamazon.prototype = Object.create(CRUD.prototype);
 Bamazon.prototype.constructor = Bamazon;
 
+function makeConnection(bamazon, callback){
+    bamazon.connection.connect(function(err) {
+      if (err) throw err;
+       console.log("\nConnection Successful\n");
+      callback(bamazon);
+    });
+
+}
+
 module.exports.initialize = function(callback) {
   var file = "./password.txt";
   if (fs.existsSync(file)) {
     var password = fs.readFileSync(file, "utf8");
     var bamazon = new Bamazon("bamazon", password);
-    callback(bamazon);
-    // getTableInformation(bamazon);
+    makeConnection(bamazon, callback);
   } else {
     inquirer.prompt([
       { name: "password", type: "password", message: "Enter Database Password", mask: "*" }
     ]).then(function(res) {
       if (res.password === undefined) res.password = "";
       var bamazon = new Bamazon("bamazon", res.password);
-      callback(bamazon);
+      makeConnection(bamazon, callback);
       fs.writeFile(file, res.password, function(err) { if (err) throw err; });
     });
   }

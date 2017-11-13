@@ -4,16 +4,7 @@ var bamazon;
 
 Bamazon.initialize(function(response) {
   bamazon = response;
-  bamazon.connection.connect(function(err) {
-    if (err) throw err;
-    bamazon.printTable("products",
-      function(res) {
-        bamazon.printTable("departments",
-          function(res) {
-            storeFront();
-          });
-      });
-  });
+  storeFront();
 });
 
 function storeFront() {
@@ -48,11 +39,11 @@ function viewProductSales() {
 		LEFT JOIN products ON departments.department_name = products.department_name\
 		GROUP BY department_name\
 		ORDER BY department_id;"
-  bamazon.printTable(query, {query: true}, function(data){
-  	if(data.length<1) {
-  		console.log("\nSomething went horribly wrong.\n")
-  	}
-  	storeFront();
+  bamazon.printTable(query, { query: true }, function(data) {
+    if (data.length < 1) {
+      console.log("\nSomething went horribly wrong.\n")
+    }
+    storeFront();
   });
 }
 
