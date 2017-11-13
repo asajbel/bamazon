@@ -21,12 +21,16 @@ module.exports =
     //Creates a new entry in the database
     //table is the name of the table or an array of table names
     //set is an object containing the values to set for hte table
-    this.CREATE = function(table, set) {
+    //callback function called when CREATE is done
+    this.CREATE = function(table, set, callback) {
+      assert(table !== undefined || set !== undefined || callback !== undefined,
+        "Specicify table and set and add a listener");
       var query = "INSERT INTO ?? SET ?";
       var call = this.connection.query(query, [table, set], function(err, res) {
         if (err) {
           throw err;
         }
+        callback(res)
       });
     };
 
@@ -41,9 +45,12 @@ module.exports =
     //  having: a string of arguments where values for columns are true
     //  orderBy: 
     //  limit:
+    //  query: if true will composite a mySQL query with the select command and what 
+    //    is written in from. Does not allow for multiple commands. 
     this.READ = function(from, listener) {
-      assert(arguments.length >= 2, "Specicify FROM and a callback function");
-      var select, where, groupBy, having, orderBy, limit;
+      assert(arguments.length >= 2 && typeof arguments[arguments.length - 1] === "function",
+        "Specicify FROM and a callback function");
+      var select, where, groupBy, having, orderBy, limit, command;
       var params = [];
       if (typeof arguments[1] == "object") {
         assert(typeof arguments[2] === "function", "requires callback function");
@@ -52,45 +59,49 @@ module.exports =
         groupBy = arguments[1].groupBy;
         having = arguments[1].having;
         orderBy = arguments[1].orderBy;
-        limit = arguments[1].limit
+        limit = arguments[1].limit;
+        command = arguments[1].query;
         listener = arguments[2];
       } else {
         assert(typeof arguments[1] === "function", "requires callback function");
         listener = arguments[1];
       }
-      if (select === undefined) select = "*";
-      params.push(select);
-      params.push(from);
-      var query = "SELECT ?? FROM ??"
-      if (where !== undefined) {
-        if (typeof where === "string") {
-          query += " WHERE " + where
-        } else {
-          query += " WHERE ?";
-          params.push(where);
+      if (command === true) {
+        var query = "SELECT " + from;
+      } else {
+        if (select === undefined) select = "*";
+        params.push(select);
+        params.push(from);
+        var query = "SELECT ?? FROM ??"
+        if (where !== undefined) {
+          if (typeof where === "string") {
+            query += " WHERE " + where
+          } else {
+            query += " WHERE ?";
+            params.push(where);
+          }
         }
-      }
-      if (groupBy !== undefined) {
-        query += " GROUP BY ??";
-        params.push(groupBy);
-      }
-      if (having !== undefined) {
-        query += " HAVING " + having;
-        // params.push(having);
-      }
-      if (orderBy !== undefined) {
-        query += " ORDER BY ??";
-        params.push(orderBy);
-      }
-      if (limit !== undefined) {
-        query += " LIMIT ??";
-        params.push(limit);
+        if (groupBy !== undefined) {
+          query += " GROUP BY ??";
+          params.push(groupBy);
+        }
+        if (having !== undefined) {
+          query += " HAVING " + having;
+          // params.push(having);
+        }
+        if (orderBy !== undefined) {
+          query += " ORDER BY ??";
+          params.push(orderBy);
+        }
+        if (limit !== undefined) {
+          query += " LIMIT ??";
+          params.push(limit);
+        }
       }
       var call = this.connection.query(query, params, function(err, res) {
         if (err) throw err;
         listener(res);
       });
-
     };
 
     //Updates values in the table specified
@@ -122,7 +133,6 @@ module.exports =
         };
         callback(res);
       });
-      console.log(call.sql);
     };
 
     //Deletes a row from the tables specified
@@ -130,8 +140,8 @@ module.exports =
     //where is an object with a key and values pairs 
     //  mapping to where the column and value are true
     this.DELETE = function(table, where, callback) {
-      assert(table !== undefined || set !== undefined || where !== undefined,
-        "Specicify table set and where");
+      assert(table !== undefined || callback !== undefined || where !== undefined,
+        "Specicify table set and callback function");
       var query = "DELETE FROM ?? WHERE ?";
       var call = this.connection.query(query, [table, where], function(err, res) {
         if (err) throw err;

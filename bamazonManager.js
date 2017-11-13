@@ -136,8 +136,9 @@ function addProduct() {
         department_name: answers.department,
         price: parseFloat(answers.price),
         stock_quantity: answers.stock
+      }, function(res) {
+      	storeFront();
       });
-      storeFront();
     });
   });
 

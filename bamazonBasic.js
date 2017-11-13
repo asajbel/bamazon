@@ -15,6 +15,9 @@ var Bamazon = function(database, password) {
       stock: 6
     }
   };
+  //Prints the entire table for specified table
+  //table is a string or array of the mySQL table(s) to print in the bamazon database
+  //options is an object of optional paramaters specified in CRUD.js CRUD object .READ function
   this.printTable = function(table, callback) {
     var options = { select: "*" };
     if (typeof arguments[1] === "object") {
@@ -28,6 +31,19 @@ var Bamazon = function(database, password) {
       }
       callback(data);
     });
+  }
+  //Prints out a table in the command line if returned
+  //query is all the text after SELECT in a mySQL command
+  //callback is a function called after the mySQL command responds
+  //returns the response from the mySQL server.
+  this.printSelectQueryTable = function(query, callback) {
+  	this.READ(query, {query: true}, function(data){
+  		if (data.length > 0) {
+  			console.log("");
+  			console.table(data);
+  		}
+  		callback(data);
+  	});
   }
 
 
